@@ -1,21 +1,11 @@
 #!/usr/bin/env python
 """extract the username and email addresses of contributers to a local or remote git repository
 """
-import os, subprocess, argparse, sys, stat
+import os, subprocess, argparse, sys, stat, tempfile, shutil
 
 GREY="\033[38;5;145m"
 OKCYAN_COLOUR = '\033[96m'
 END_COLOUR = '\033[0m'
-
-def rmtree(top):
-    for root, dirs, files in os.walk(top, topdown=False):
-        for name in files:
-            filename = os.path.join(root, name)
-            os.chmod(filename, stat.S_IWUSR)
-            os.remove(filename)
-        for name in dirs:
-            os.rmdir(os.path.join(root, name))
-    os.rmdir(top)
 
 if __name__ == "__main__":
 	command_line = argparse.ArgumentParser(description=str(__doc__), formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -25,7 +15,7 @@ if __name__ == "__main__":
 	args = command_line.parse_args()
 
 	try:
-		location = "OSCHECKER_TMP_DIR"
+		location = tempfile.mkdtemp()
 		if args.dir:
 			print(f"{GREY}")
 			location = args.dir
@@ -53,5 +43,11 @@ if __name__ == "__main__":
 
 	finally:
 		if args.url:
-			rmtree(location)
+			# delete readonly files https://docs.python.org/3/library/shutil.html#shutil-rmtree-example
+			def remove_readonly(func, path, _):
+			    "Clear the readonly bit and reattempt the removal"
+			    os.chmod(path, stat.S_IWRITE)
+			    func(path)
+
+			shutil.rmtree(location, onexc=remove_readonly)
 		print(f"{END_COLOUR}")
