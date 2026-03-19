@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	args = command_line.parse_args()
 
 	try:
-		location = tempfile.mkdtemp()
+		location = ""
 		if args.dir:
 			print(f"{GREY}")
 			location = args.dir
@@ -23,6 +23,7 @@ if __name__ == "__main__":
 		else:
 			if not args.url:
 				sys.exit("you must provide a valid git url or --dir path/to/local/repo")
+			location = tempfile.mkdtemp()
 			print(f"{GREY}")
 			print(f"cloning from {args.url}")
 			subprocess.run(["git", "clone", args.url, location])#, '-q'])
